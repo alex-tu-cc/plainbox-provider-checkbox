@@ -364,3 +364,54 @@ _steps:
 _verification:
     Did the Ambient Light Sensor values change when you shaking your hands over the sensor? 
     Did the Screen backlight also changed?
+
+plugin: shell
+category_id: com.canonical.plainbox::power-management
+id: power-management/turbostat_long_idle_result
+estimated_duration: 90s
+user: root
+depends:
+ miscellanea/install_kernel_tools
+ miscellanea/enter_long_idle
+command:
+ echo "Saving cpu package state tracking in $PLAINBOX_SESSION_SHARE/turbostat-longidle.log and package_cstate_show"
+ check-turbostat-power-residency.sh --p_state longidle --folder "$PLAINBOX_SESSION_SHARE" --stat pkg_pc10:0 > /dev/null
+_summary: Get tubostate result from long idle.
+_description:
+ get turbo state result from long idle so that we can know cpu pkg power status. The turbostat tool is suggested by HWE. Also provide package_state_show for debug reference.
+ This test will generate a turbostat log under "$PLAINBOX_SESSION_SHARE".
+
+plugin: shell
+category_id: com.canonical.plainbox::power-management
+id: power-management/check-turbostat-long-idle-residency
+requires:
+ lsb.release >= "20.04"
+ package.name == 'checkbox-ng'
+estimated_duration: 2s
+depends:
+ power-management/turbostat_long_idle_result
+command:
+ xte 'key Up'
+ [ -f "$PLAINBOX_SESSION_SHARE"/idle-delay.orig ] && gsettings set org.gnome.desktop.session idle-delay $(cat "$PLAINBOX_SESSION_SHARE"/idle-delay.orig)
+ check-turbostat-power-residency.sh -f "$PLAINBOX_SESSION_SHARE"/turbostat-longidle.log --stat pkg_pc10:70 --stat gfxrc6:90 --stat s0ix:70
+_summary: Check expected power stat residency in long-idle.
+_description:
+ check expected power stat residency in suspend to idle(s2i) by by turbostat which HWE suggested and also provide package_state_show for debug reference.
+ This test job is an automatic test case and should be included into projects those need e-star compliance.
+
+plugin: shell
+category_id: com.canonical.plainbox::power-management
+id: power-management/check-turbostat-s2i-residency
+estimated_duration: 90s
+user: root
+requires:
+ lsb.release >= "20.04"
+ package.name == 'checkbox-ng'
+depends:
+ miscellanea/install_kernel_tools
+command:
+ check-turbostat-power-residency.sh --p_state s2i --stat pkg_pc10:70 --stat gfxrc6:90 --stat s0ix:70
+_summary: Check expected power stat residency in suspend to idle(s2i).
+_description:
+ check expected power stat residency in suspend to idle(s2i) by turbostat which HWE suggested and also provide package_state_show for debug reference.
+ This test job is an automatic test case and should be included into projects those need e-star compliance.

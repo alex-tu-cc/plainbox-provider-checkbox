@@ -1,0 +1,4 @@
+# The power-management/check-turbostat-long-idle-residency job requires xautomation package
+unit: packaging meta-data
+os-id: debian
+Depends: xautomation

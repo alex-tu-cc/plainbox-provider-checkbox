@@ -24,7 +24,7 @@ usage: $0 options [--folder {target-folder-for-turbostat-log}] [--stat {target-p
               \$turbostat --out your-log --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
               then:
               \$$0 -f path-to-your-log
-    --p_state get p_state after which system power state.
+    --p_state get p_state after which system power state, the valuse could be s2i, longidle or shortidle
               usage:
                 $0 --p_state  s2i ; # enter s2i then get turbostat value
 

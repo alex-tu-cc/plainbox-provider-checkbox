@@ -86,3 +86,11 @@ _description: Manual power tests for Snappy Ubuntu Core devices
 include:
     power-management/poweroff-manual
     power-management/reboot-manual
+
+id: power-turbostat-residency-automated
+unit: test plan
+_name: Check turbostate residency (automated)
+_description:
+include:
+    power-management/check-turbostat-long-idle-residency
+    power-management/check-turbostat-s2i-residency

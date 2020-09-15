@@ -11,11 +11,11 @@ declare -A avg_criteria
 
 usage() {
 cat << EOF
-usage: $0 options [--folder <target-folder-for-turbostat-log>] [--stat <target-power-stat>]
+usage: $(basename $0) options [--output-directory <target-folder-for-turbostat-log>] [--op-mode <expected-operation-mode-of-e-star>]
 
 This tool will run turbostat and check if the power state meet our requirement.
 Most of operations are need root permission.
-The generated turbostat log will be put in {target-folder-for-turbostat-log}/turbostat-{target-power-stat}.log"
+The generated turbostat log will be put in <target-folder-for-turbostat-log>/turbostat-<expected-operation-mode-of-e-star>.log"
 
     -h|--help Print this message
     --output-directory
@@ -23,23 +23,25 @@ The generated turbostat log will be put in {target-folder-for-turbostat-log}/tur
     -f        Read external turbostat log instead of doing turbostat.; do not need root permission.
 
               Please get log by this command:
-              \$turbostat --out your-log --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
+              turbostat --out external-log --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
               Then:
-              \$$0 -f path-to-your-log
+              $(basename "$0") -f path-to-external-log
 
-    --p_state Get p_state after which system power state, the valuse could be s2i, longidle or shortidle
+    --op-mode The expected operation mode defined by e-star spec. The valuse could be short-idle, long-idle or sleep-mode
+	      It will be appended to the file name of the generated turbostat log file. If value is sleep-mode, this
+	      script will call turbostat with rtcwake to put system to s2i mode.
 
               Usage:
-                $0 --p_state  s2i ; # Enter s2i then get turbostat value
+                $(basename "$0") --op-mode  sleep-mode ; # Enter s2i then get turbostat value
 
-                $0 --p_state  {other_state} ; # You execute $0 during system in {other_state}.
+                $(basename "$0") --op-mode  long-idle ; # You execute $(basename "$0") during system in long-idle.
 
     --stat    Check if stat matchs expected percentage.
 
-              Usage: $0 --stat [stat:percentage]
+              Usage: $(basename "$0") --stat [stat:percentage]
 
               State could be GFX%rc6, Pk%pc10 or SYS%LPI
-              e.g. $0 --stat Pk%pc10:60 --stat SYS%LPI:70
+              e.g. $(basename "$0") --stat Pk%pc10:60 --stat SYS%LPI:70
 EOF
 exit 1
 }
@@ -51,9 +53,9 @@ do
             usage 0
             exit 0
             ;;
-        --p_state)
+        --op-mode)
             shift
-            p_state="$1";
+            op_mode="$1";
             ;;
         --folder)
             shift
@@ -83,7 +85,7 @@ done
 
 [ -n "$session_folder" ] || session_folder="/tmp"
 
-STAT_FILE="$session_folder/turbostat-$p_state.log"
+STAT_FILE="$session_folder/turbostat-$op_mode.log"
 
 if_root(){
    if [ "$(id -u)" != "0" ]; then
@@ -91,7 +93,7 @@ if_root(){
        usage
    fi
 }
-if [ "$p_state" == "s2i" ]; then
+if [ "$op_mode" == "sleep-mode" ]; then
     if_root
     echo "[INFO] getting turbostat log. Please wait for 60s"
     turbostat --out "$STAT_FILE" --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI rtcwake -m freeze -s 60

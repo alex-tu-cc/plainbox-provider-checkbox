@@ -399,7 +399,7 @@ depends:
  power-management/turbostat_long_idle_result
 command:
  [ -f "$PLAINBOX_SESSION_SHARE"/idle-delay.orig ] && gsettings set org.gnome.desktop.session idle-delay $(cat "$PLAINBOX_SESSION_SHARE"/idle-delay.orig)
- check-turbostat-power-residency.sh -f "$PLAINBOX_SESSION_SHARE"/turbostat-longidle.log --stat pkg_pc10:70 --stat gfxrc6:90 --stat s0ix:70
+ check-turbostat-power-residency.sh -f "$PLAINBOX_SESSION_SHARE"/turbostat-longidle.log --stat Pk%pc10:70 --stat GFX%rc6:90 --stat SYS%LPI:70
 _summary: Check expected power stat residency in long-idle.
 _description:
  check expected power stat residency in suspend to idle(s2i) by by turbostat which HWE suggested and also provide package_state_show for debug reference.
@@ -416,7 +416,7 @@ requires:
 depends:
  miscellanea/install_kernel_tools
 command:
- check-turbostat-power-residency.sh --p_state s2i --stat pkg_pc10:70 --stat gfxrc6:90 --stat s0ix:70
+ check-turbostat-power-residency.sh --p_state s2i --stat Pk%pc10:70 --stat GFX%rc6:90 --stat SYS%LPI:70
 _summary: Check expected power stat residency in suspend to idle(s2i).
 _description:
  check expected power stat residency in suspend to idle(s2i) by turbostat which HWE suggested and also provide package_state_show for debug reference.

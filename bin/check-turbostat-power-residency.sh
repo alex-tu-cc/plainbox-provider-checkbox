@@ -2,38 +2,44 @@
 
 #refer to https://01.org/blogs/qwang59/2020/linux-s0ix-troubleshooting
 set -e
-state="pass"
+result="pass"
 command -v turbostat || exit 1
 
-declare -A stats_p=( [gfxrc6]=0 [pkg_pc10]=7 [s0ix]=8 )
-declare -A turbostat=( [gfxrc6]=0 [pkg_pc10]=0 [s0ix]=0 )
+declare -A stats_p=( [GFX%rc6]=0 [Pk%pc10]=7 [SYS%LPI]=8 )
+declare -A turbostat=( [GFX%rc6]=0 [Pk%pc10]=0 [SYS%LPI]=0 )
 declare -A avg_criteria
 
 usage() {
 cat << EOF
-usage: $0 options [--folder {target-folder-for-turbostat-log}] [--stat {target-power-stat}]
-    this tool will run turbostat and check if the power state meet our requirement.
-    most of operations are need root permission.
-    the generated turbostat log will be put in {target-folder-for-turbostat-log}/turbostat-{target-power-stat}.log"
+usage: $0 options [--folder <target-folder-for-turbostat-log>] [--stat <target-power-stat>]
 
-    -h|--help print this message
-    --s2i     get into s2i before run turbostat
-    --folder  sepcify the path of folder that you want to store turbostat logs. The default one is /tmp
-    -f        read external turbostat log instead of doing turbostat.; do not need root permission.
-              please get log by this command:
+This tool will run turbostat and check if the power state meet our requirement.
+Most of operations are need root permission.
+The generated turbostat log will be put in {target-folder-for-turbostat-log}/turbostat-{target-power-stat}.log"
+
+    -h|--help Print this message
+    --output-directory
+              Sepcify the path of folder that you want to store turbostat logs. The default one is /tmp
+    -f        Read external turbostat log instead of doing turbostat.; do not need root permission.
+
+              Please get log by this command:
               \$turbostat --out your-log --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
-              then:
+              Then:
               \$$0 -f path-to-your-log
-    --p_state get p_state after which system power state, the valuse could be s2i, longidle or shortidle
-              usage:
-                $0 --p_state  s2i ; # enter s2i then get turbostat value
 
-                $0 --p_state  {other_state} ; # you execute $0 during system in {other_state}.
-    --stat    check if stat matchs expected percentage.
-              usage: $0 --stat [stat:percentage}
+    --p_state Get p_state after which system power state, the valuse could be s2i, longidle or shortidle
 
-              state could be gfxrc6, pkg_pc10 or s0ix
-              e.g. $0 --stat pkg_pc10:60 --stat s0ix:70
+              Usage:
+                $0 --p_state  s2i ; # Enter s2i then get turbostat value
+
+                $0 --p_state  {other_state} ; # You execute $0 during system in {other_state}.
+
+    --stat    Check if stat matchs expected percentage.
+
+              Usage: $0 --stat [stat:percentage]
+
+              State could be GFX%rc6, Pk%pc10 or SYS%LPI
+              e.g. $0 --stat Pk%pc10:60 --stat SYS%LPI:70
 EOF
 exit 1
 }
@@ -111,11 +117,11 @@ for i in "${!avg_criteria[@]}"; do
         echo "Passed."
     else
         >&2 echo "Failed" "avg $i : ${turbostat[$i]} NOT >= ${avg_criteria[$i]} "
-        state="failed"
+        result="failed"
     fi
 done
 
-if [ "$state" != "pass" ]; then
+if [ "$result" != "pass" ]; then
     echo "[ERROR] please refer to https://01.org/blogs/qwang59/2018/how-achieve-s0ix-states-linux and https://01.org/blogs/qwang59/2020/linux-s0ix-troubleshooting for debugging"
     exit 1
 fi

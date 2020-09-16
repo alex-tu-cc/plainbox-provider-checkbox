@@ -8,6 +8,7 @@ command -v turbostat || exit 1
 declare -A stats_p=( [GFX%rc6]=0 [Pk%pc10]=7 [SYS%LPI]=8 )
 declare -A turbostat=( [GFX%rc6]=0 [Pk%pc10]=0 [SYS%LPI]=0 )
 declare -A avg_criteria
+op_mode="short-idle"
 
 usage() {
 cat << EOF
@@ -19,29 +20,30 @@ The generated turbostat log will be put in <target-folder-for-turbostat-log>/tur
 
     -h|--help Print this message
     --output-directory
-              Sepcify the path of folder that you want to store turbostat logs. The default one is /tmp
-    -f        Read external turbostat log instead of doing turbostat.; do not need root permission.
+            Sepcify the path of folder that you want to store turbostat logs. The default one is /tmp
+    -f      Read external turbostat log instead of doing turbostat.; do not need root permission.
 
-              Please get log by this command:
-              turbostat --out external-log --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
-              Then:
+            Please get log by this command:
+            turbostat --out external-log --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
+            Then:
               $(basename "$0") -f path-to-external-log
 
     --op-mode The expected operation mode defined by e-star spec. The valuse could be short-idle, long-idle or sleep-mode
-	      It will be appended to the file name of the generated turbostat log file. If value is sleep-mode, this
-	      script will call turbostat with rtcwake to put system to s2i mode.
+            It will be appended to the file name of the generated turbostat log file. If value is sleep-mode, this
+            script will call turbostat with rtcwake to put system to s2i mode.
+            The default is short-idle.
 
-              Usage:
-                $(basename "$0") --op-mode  sleep-mode ; # Enter s2i then get turbostat value
+            Usage:
+              $(basename "$0") --op-mode  sleep-mode ; # Enter s2i then get turbostat value
 
-                $(basename "$0") --op-mode  long-idle ; # You execute $(basename "$0") during system in long-idle.
+              $(basename "$0") --op-mode  long-idle ; # You execute $(basename "$0") during system in long-idle.
 
-    --stat    Check if stat matchs expected percentage.
+    --stat  Check if stat matchs expected percentage.
 
-              Usage: $(basename "$0") --stat [stat:percentage]
+            Usage: $(basename "$0") --stat [stat:percentage]
 
-              State could be GFX%rc6, Pk%pc10 or SYS%LPI
-              e.g. $(basename "$0") --stat Pk%pc10:60 --stat SYS%LPI:70
+            State could be GFX%rc6, Pk%pc10 or SYS%LPI
+            e.g. $(basename "$0") --stat Pk%pc10:60 --stat SYS%LPI:70
 EOF
 exit 1
 }
@@ -70,8 +72,8 @@ do
             ;;
         --stat)
             shift
-            [ -n "${stats_p["$(cut -d':' -f1 <<<"$1")"]}" ] || (echo "[ERROR] illegle parameter $1" && usage)
-            avg_criteria["$(cut -d':' -f1 <<<"$1")"]="$(cut -d':' -f2 <<<"$1")"
+            [ -n "${stats_p["${1%%:*}"]}" ] || (echo "[ERROR] illegle parameter $1" && usage)
+            avg_criteria["${1%%:*}"]="${1##*:}"
             #echo ${!avg_criteria[@]}
             #echo ${avg_criteria[@]}
             ;;
@@ -87,20 +89,21 @@ done
 
 STAT_FILE="$session_folder/turbostat-$op_mode.log"
 
-if_root(){
+require_root(){
    if [ "$(id -u)" != "0" ]; then
        >&2 echo "[ERROR]need root permission"
        usage
    fi
 }
-if [ "$op_mode" == "sleep-mode" ]; then
-    if_root
+
+if [ -n "$EX_FILE" ]; then
+    cp "$EX_FILE" "$STAT_FILE"
+elif [ "$op_mode" == "sleep-mode" ]; then
+    require_root
     echo "[INFO] getting turbostat log. Please wait for 60s"
     turbostat --out "$STAT_FILE" --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI rtcwake -m freeze -s 60
-elif [ -n "$EX_FILE" ]; then
-    cp "$EX_FILE" "$STAT_FILE"
 else
-    if_root
+    require_root
     echo "[INFO] getting turbostat log. Please wait for about 120s"
     # turbostat take 3-4 secs per iteration
     turbostat --num_iterations 30 --out "$STAT_FILE" --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI

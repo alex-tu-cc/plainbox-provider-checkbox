@@ -264,26 +264,32 @@ plugin: shell
 category_id: com.canonical.plainbox::graphics
 id: graphics/{index}_gl_support_{product_slug}
 requires: package.name == 'nux-tools'
-command: /usr/lib/nux/unity_support_test -p 2>&1
+command: {rt_switch} /usr/lib/nux/unity_support_test -p 2>&1
 estimated_duration: 0.131
 _description: Check that {vendor} {product} hardware is able to run a desktop session (OpenGL)
 _summary: Test OpenGL support for {vendor} {product}
 
 unit: template
 template-resource: graphics_card
-template-filter: graphics_card.driver in ['amdgpu', 'amdgpu-pro']
 plugin: shell
 category_id: com.canonical.plainbox::graphics
 id: graphics/{index}_valid_opengl_renderer_{product_slug}
 requires: executable.name == 'glxinfo'
 command:
- renderer=$(DRI_PRIME=1 glxinfo | grep "OpenGL re")
+ renderer=$({rt_switch} glxinfo | grep "OpenGL re")
  echo "$renderer"
- if grep -qi 'Intel' <<<"$renderer"; then
-     echo 'ERROR: renderer is Intel when DRI_PRIME=1'
-     exit 1
+ if [ "{driver}" == "pcieport" ] || [ "{driver}" == "nvidia" ] || [ "{driver}" == "amdgpu" ] || [ "{driver}" == "amdgpu-pro" ]; then
+     if grep -qi 'Intel' <<<"$renderer"; then
+         echo 'ERROR: renderer in "{rt_switch} glxinfo" is Intel when driver={driver}'
+         exit 1
+     fi
+ else
+     if  ! grep -qi 'Intel' <<<"$renderer"; then
+         echo 'ERROR: renderer is NOT Intel when driver={driver}'
+         exit 1
+     fi
  fi
-_summary: Check the OpenGL renderer (AMD GPU and DRI_PRIME=1)
+_summary: Check the OpenGL renderer for driver={driver}
 
 unit: template
 template-resource: graphics_card
@@ -523,7 +529,7 @@ template-resource: graphics_card
 category_id: com.canonical.plainbox::graphics
 id: graphics/{index}_auto_switch_card_{product_slug}
 requires:
- graphics_card.driver in ['nvidia', 'amdgpu-pro', 'pcieport']
+ graphics_card.driver in ['nvidia', 'amdgpu-pro', 'pcieport'] and graphics_card.runtime_pm == 'no'
 _summary: Switch GPU to {vendor} {product} and reboot
 _purpose:
  Switch GPU to {vendor} {product} and reboot the machine

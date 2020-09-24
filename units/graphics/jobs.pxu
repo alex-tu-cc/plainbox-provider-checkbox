@@ -278,7 +278,7 @@ requires: executable.name == 'glxinfo'
 command:
  renderer=$({rt_switch} glxinfo | grep "OpenGL re")
  echo "$renderer"
- if [ "{driver}" == "pcieport" ] || [ "{driver}" == "nvidia" ] || [ "{driver}" == "amdgpu" ] || [ "{driver}" == "amdgpu-pro" ]; then
+ if [ "{driver}" != "i915" ]; then
      if grep -qi 'Intel' <<<"$renderer"; then
          echo 'ERROR: renderer in "{rt_switch} glxinfo" is Intel when driver={driver}'
          exit 1

@@ -244,4 +244,3 @@ include:
 bootstrap_include:
     com.canonical.certification::graphics_card
     com.canonical.certification::nvidia_drv
-

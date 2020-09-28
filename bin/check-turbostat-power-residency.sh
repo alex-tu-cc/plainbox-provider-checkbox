@@ -5,11 +5,21 @@ set -e
 result="pass"
 command -v turbostat || exit 1
 
-declare -A stats_p=( [GFX%rc6]=0 [Pk%pc10]=7 [SYS%LPI]=8 )
-declare -A turbostat=( [GFX%rc6]=0 [Pk%pc10]=0 [SYS%LPI]=0 )
+#declare -A stats_p=( [GFX%rc6]=0 [Pk%pc10]=7 [SYS%LPI]=8 )
+TARGET_STATS="GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI"
+declare -A stats_p
 declare -A avg_criteria
-declare -a all_stats
 op_mode="short-idle"
+i=0
+#for s in "${TARGET_STATS//,/ }  $( sed 's/,/ /g' <<< "$TARGET_STATS")"; do
+for s in ${TARGET_STATS//,/ }; do
+    stats_p[$i]="$s"
+    avg_criteria["$s"]=0
+    i=$((i+1))
+done
+echo ==============================
+echo ${!avg_criteria[@]}
+echo ${avg_criteria[@]}
 
 usage() {
 cat << EOF
@@ -73,7 +83,9 @@ do
             ;;
         --stat)
             shift
-            [ -n "${stats_p["${1%%:*}"]}" ] || (echo "[ERROR] illegle parameter $1" && usage)
+            #[ -n "${stats_p["${1%%:*}"]}" ] || (echo "[ERROR] illegle parameter $1" && usage)
+            echo 888888888
+            [ -z "${TARGET_STATS##*${1%%:*}*}" ] || (echo "[ERROR] illegle parameter $1" && usage)
             avg_criteria["${1%%:*}"]="${1##*:}"
             #echo ${!avg_criteria[@]}
             #echo ${avg_criteria[@]}
@@ -84,7 +96,15 @@ do
        shift
 done
 
-[ "${#avg_criteria[@]}" != "0" ] || avg_criteria=( [GFX%rc6]=50 [Pk%pc10]=80 [SYS%LPI]=70 )
+echo ==============================
+echo ${!avg_criteria[@]}
+echo ${avg_criteria[@]}
+tmp_str=${avg_criteria[*]}
+if [ -n "${tmp_str##*[1-9]*}" ]; then
+    avg_criteria["GFX%rc6"]=50
+    avg_criteria["Pk%pc10"]=80
+    avg_criteria["SYS%LPI"]=70
+fi
 
 [ -n "$session_folder" ] || session_folder="/tmp"
 
@@ -102,16 +122,23 @@ if [ -n "$EX_FILE" ]; then
 elif [ "$op_mode" == "sleep-mode" ]; then
     require_root
     echo "[INFO] getting turbostat log. Please wait for 60s"
-    turbostat --out "$STAT_FILE" --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI rtcwake -m freeze -s 60
+    turbostat --out "$STAT_FILE" --show $TARGET_STATS rtcwake -m freeze -s 60
 else
     require_root
     echo "[INFO] getting turbostat log. Please wait for about 120s"
     # turbostat take 3-4 secs per iteration
-    turbostat --num_iterations 30 --out "$STAT_FILE" --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
+    turbostat --num_iterations 30 --out "$STAT_FILE" --show $TARGET_STATS
 fi
 i=0
 while read -r avg; do
-    all_stats[$i]=$avg
+    if [ "${avg_criteria[${stats_p[$i]}]}" != "0" ]; then
+        echo "[INFO] checking if ${stats_p[$i]}($avg%) >= ${avg_criteria[${stats_p[$i]}]}%"
+        if [ "$(bc <<< "$avg >= ${avg_criteria[${stats_p[$i]}]}")" == "1" ]; then
+            echo "Passed."
+        else
+            >&2 echo "Failed" "avg $i : $avg NOT >= ${avg_criteria[${stats_p[$i]}]} "
+        fi
+    fi
     i=$((i+1));
 done< <(grep -v "[a-zA-Z]" "$STAT_FILE" | awk '
 BEGIN { max = 0 }
@@ -125,18 +152,19 @@ BEGIN { max = 0 }
 END {
     for (i = 1; i <= max; i++)
     {
-        print a[i] / NR;
+        if (a[i] > 1 ) print a[i] / NR;
+        else print 0
     }
 }
 ')
-for i in "${!avg_criteria[@]}"; do
-    echo "[INFO] checking if $i(${all_stats[${stats_p[$i]}]}%) >= ${avg_criteria[$i]}%"
-    if [ "$(bc <<< "${all_stats[${stats_p[$i]}]} >= ${avg_criteria[$i]}")" == "1" ]; then
-        echo "Passed."
-    else
-        >&2 echo "Failed" "avg $i : ${all_stats["${stats_p[$i]}"]} NOT >= ${avg_criteria[$i]} "
-    fi
-done
+#for i in "${!avg_criteria[@]}"; do
+#    echo "[INFO] checking if $i(${all_stats[${stats_p[$i]}]}%) >= ${avg_criteria[$i]}%"
+#    if [ "$(bc <<< "${all_stats[${stats_p[$i]}]} >= ${avg_criteria[$i]}")" == "1" ]; then
+#        echo "Passed."
+#    else
+#        >&2 echo "Failed" "avg $i : ${all_stats["${stats_p[$i]}"]} NOT >= ${avg_criteria[$i]} "
+#    fi
+#done
 #while read -r -a line; do
 #    c=$((c+1));
 #    for i in "${!turbostat[@]}"; do

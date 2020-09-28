@@ -5,25 +5,20 @@ set -e
 result="pass"
 command -v turbostat || exit 1
 
-#declare -A stats_p=( [GFX%rc6]=0 [Pk%pc10]=7 [SYS%LPI]=8 )
 TARGET_STATS="GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI"
 declare -A stats_p
 declare -A avg_criteria
 op_mode="short-idle"
 i=0
-#for s in "${TARGET_STATS//,/ }  $( sed 's/,/ /g' <<< "$TARGET_STATS")"; do
 for s in ${TARGET_STATS//,/ }; do
     stats_p[$i]="$s"
     avg_criteria["$s"]=0
     i=$((i+1))
 done
-echo ==============================
-echo ${!avg_criteria[@]}
-echo ${avg_criteria[@]}
 
 usage() {
 cat << EOF
-usage: $(basename $0) options [--output-directory <target-folder-for-turbostat-log>] [--op-mode <expected-operation-mode-of-e-star>]
+usage: $(basename "$0") options [--output-directory <target-folder-for-turbostat-log>] [--op-mode <expected-operation-mode-of-e-star>]
 
 This tool will run turbostat and check if the power state meet our requirement.
 Most of operations are need root permission.
@@ -83,12 +78,8 @@ do
             ;;
         --stat)
             shift
-            #[ -n "${stats_p["${1%%:*}"]}" ] || (echo "[ERROR] illegle parameter $1" && usage)
-            echo 888888888
             [ -z "${TARGET_STATS##*${1%%:*}*}" ] || (echo "[ERROR] illegle parameter $1" && usage)
             avg_criteria["${1%%:*}"]="${1##*:}"
-            #echo ${!avg_criteria[@]}
-            #echo ${avg_criteria[@]}
             ;;
         *)
         usage
@@ -96,9 +87,6 @@ do
        shift
 done
 
-echo ==============================
-echo ${!avg_criteria[@]}
-echo ${avg_criteria[@]}
 tmp_str=${avg_criteria[*]}
 if [ -n "${tmp_str##*[1-9]*}" ]; then
     avg_criteria["GFX%rc6"]=50
@@ -157,31 +145,6 @@ END {
     }
 }
 ')
-#for i in "${!avg_criteria[@]}"; do
-#    echo "[INFO] checking if $i(${all_stats[${stats_p[$i]}]}%) >= ${avg_criteria[$i]}%"
-#    if [ "$(bc <<< "${all_stats[${stats_p[$i]}]} >= ${avg_criteria[$i]}")" == "1" ]; then
-#        echo "Passed."
-#    else
-#        >&2 echo "Failed" "avg $i : ${all_stats["${stats_p[$i]}"]} NOT >= ${avg_criteria[$i]} "
-#    fi
-#done
-#while read -r -a line; do
-#    c=$((c+1));
-#    for i in "${!turbostat[@]}"; do
-#        turbostat[$i]=$(bc <<< "${turbostat[$i]}+${line[${stats_p[$i]}]}");
-#    done
-#done < <(grep -v "[a-zA-Z]" "$STAT_FILE")
-#
-#for i in "${!avg_criteria[@]}"; do
-#    turbostat[$i]=$(bc <<< "${turbostat[$i]}/$c");
-#    echo "[INFO] checking if $i >= ${avg_criteria[$i]}%"
-#    if [ "$(bc <<< "${turbostat[$i]} >= ${avg_criteria[$i]}")" == "1" ]; then
-#        echo "Passed."
-#    else
-#        >&2 echo "Failed" "avg $i : ${turbostat[$i]} NOT >= ${avg_criteria[$i]} "
-#        result="failed"
-#    fi
-#done
 
 if [ "$result" != "pass" ]; then
     echo "[ERROR] please refer to https://01.org/blogs/qwang59/2018/how-achieve-s0ix-states-linux and https://01.org/blogs/qwang59/2020/linux-s0ix-troubleshooting for debugging"

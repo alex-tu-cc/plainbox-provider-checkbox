@@ -129,6 +129,7 @@ while read -r avg; do
             echo "Passed."
         else
             >&2 echo "Failed" "avg $i : $avg NOT >= ${avg_criteria[${stats_p[$i]}]} "
+	    result="failed"
         fi
     fi
     i=$((i+1));

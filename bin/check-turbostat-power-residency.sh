@@ -9,6 +9,7 @@ TARGET_STATS="GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SY
 declare -A stats_p
 declare -A avg_criteria
 op_mode="short-idle"
+custom_avg_criteria="true"
 i=0
 for s in ${TARGET_STATS//,/ }; do
     stats_p[$i]="$s"
@@ -74,12 +75,16 @@ do
             shift
             if [ -f "$1" ]; then
                 EX_FILE="$1";
+	    else
+		echo"[ERROR] $1 is not there."
+		usage
             fi
             ;;
         --stat)
             shift
             [ -z "${TARGET_STATS##*${1%%:*}*}" ] || (echo "[ERROR] illegle parameter $1" && usage)
             avg_criteria["${1%%:*}"]="${1##*:}"
+	    custom_avg_criteria="true"
             ;;
         *)
         usage
@@ -87,8 +92,7 @@ do
        shift
 done
 
-tmp_str=${avg_criteria[*]}
-if [ -n "${tmp_str##*[1-9]*}" ]; then
+if [ "$custom_avg_criteria" != "true" ]; then
     avg_criteria["GFX%rc6"]=50
     avg_criteria["Pk%pc10"]=80
     avg_criteria["SYS%LPI"]=70

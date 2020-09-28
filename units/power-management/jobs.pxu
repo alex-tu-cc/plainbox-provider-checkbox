@@ -374,8 +374,8 @@ depends:
  miscellanea/install_kernel_tools
  miscellanea/enter_long_idle
 command:
- echo "Saving cpu package state tracking in $PLAINBOX_SESSION_SHARE/turbostat-longidle.log and package_cstate_show"
- check-turbostat-power-residency.sh --op-mode long-idle --folder "$PLAINBOX_SESSION_SHARE" --stat pkg_pc10:0 > /dev/null
+ echo "Saving cpu package state tracking in $PLAINBOX_SESSION_SHARE/turbostat-long-idle.log and package_cstate_show"
+ check-turbostat-power-residency.sh --op-mode long-idle --folder "$PLAINBOX_SESSION_SHARE" --stat Pk%pc10:0 > /dev/null
  python3 <<EOF
  from evdev import UInput, ecodes as e
  ui = UInput()

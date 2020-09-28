@@ -8,6 +8,7 @@ command -v turbostat || exit 1
 declare -A stats_p=( [GFX%rc6]=0 [Pk%pc10]=7 [SYS%LPI]=8 )
 declare -A turbostat=( [GFX%rc6]=0 [Pk%pc10]=0 [SYS%LPI]=0 )
 declare -A avg_criteria
+declare -a all_stats
 op_mode="short-idle"
 
 usage() {
@@ -83,7 +84,7 @@ do
        shift
 done
 
-[ "${#avg_criteria[@]}" != "0" ] || avg_criteria=( [gfxrc6]=50 [pkg_pc10]=80 [s0ix]=70 )
+[ "${#avg_criteria[@]}" != "0" ] || avg_criteria=( [GFX%rc6]=50 [Pk%pc10]=80 [SYS%LPI]=70 )
 
 [ -n "$session_folder" ] || session_folder="/tmp"
 
@@ -108,23 +109,51 @@ else
     # turbostat take 3-4 secs per iteration
     turbostat --num_iterations 30 --out "$STAT_FILE" --show GFX%rc6,Pkg%pc2,Pkg%pc3,Pkg%pc6,Pkg%pc7,Pkg%pc8,Pkg%pc9,Pk%pc10,SYS%LPI
 fi
-while read -r -a line; do
-    c=$((c+1));
-    for i in "${!turbostat[@]}"; do
-        turbostat[$i]=$(bc <<< "${turbostat[$i]}+${line[${stats_p[$i]}]}");
-    done
-done < <(grep -v "[a-zA-Z]" "$STAT_FILE")
-
+i=0
+while read -r avg; do
+    all_stats[$i]=$avg
+    i=$((i+1));
+done< <(grep -v "[a-zA-Z]" "$STAT_FILE" | awk '
+BEGIN { max = 0 }
+{
+    if (NF > max) max = NF;
+    for (i = 1; i <= NF; i++)
+    {
+        a[i] = a[i] + $i;
+    }
+}
+END {
+    for (i = 1; i <= max; i++)
+    {
+        print a[i] / NR;
+    }
+}
+')
 for i in "${!avg_criteria[@]}"; do
-    turbostat[$i]=$(bc <<< "${turbostat[$i]}/$c");
-    echo "[INFO] checking if $i >= ${avg_criteria[$i]}%"
-    if [ "$(bc <<< "${turbostat[$i]} >= ${avg_criteria[$i]}")" == "1" ]; then
+    echo "[INFO] checking if $i(${all_stats[${stats_p[$i]}]}%) >= ${avg_criteria[$i]}%"
+    if [ "$(bc <<< "${all_stats[${stats_p[$i]}]} >= ${avg_criteria[$i]}")" == "1" ]; then
         echo "Passed."
     else
-        >&2 echo "Failed" "avg $i : ${turbostat[$i]} NOT >= ${avg_criteria[$i]} "
-        result="failed"
+        >&2 echo "Failed" "avg $i : ${all_stats["${stats_p[$i]}"]} NOT >= ${avg_criteria[$i]} "
     fi
 done
+#while read -r -a line; do
+#    c=$((c+1));
+#    for i in "${!turbostat[@]}"; do
+#        turbostat[$i]=$(bc <<< "${turbostat[$i]}+${line[${stats_p[$i]}]}");
+#    done
+#done < <(grep -v "[a-zA-Z]" "$STAT_FILE")
+#
+#for i in "${!avg_criteria[@]}"; do
+#    turbostat[$i]=$(bc <<< "${turbostat[$i]}/$c");
+#    echo "[INFO] checking if $i >= ${avg_criteria[$i]}%"
+#    if [ "$(bc <<< "${turbostat[$i]} >= ${avg_criteria[$i]}")" == "1" ]; then
+#        echo "Passed."
+#    else
+#        >&2 echo "Failed" "avg $i : ${turbostat[$i]} NOT >= ${avg_criteria[$i]} "
+#        result="failed"
+#    fi
+#done
 
 if [ "$result" != "pass" ]; then
     echo "[ERROR] please refer to https://01.org/blogs/qwang59/2018/how-achieve-s0ix-states-linux and https://01.org/blogs/qwang59/2020/linux-s0ix-troubleshooting for debugging"

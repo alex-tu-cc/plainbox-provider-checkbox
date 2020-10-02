@@ -1,0 +1,7 @@
+id: power-management-poweroff-cert-automated
+unit: test plan
+_name: Power Management reboot and power off tests (automated)
+_description: Power Management reboot and power off tests (automated)
+include:
+    power-management/poweroff                      certification-status=blocker
+    power-management/poweroff-log-attach

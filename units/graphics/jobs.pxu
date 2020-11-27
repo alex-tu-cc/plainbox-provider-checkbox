@@ -534,6 +534,16 @@ command:
  pm_test.py --silent --checkbox-respawn-cmd "$PLAINBOX_SESSION_SHARE"/__respawn_checkbox reboot --log-level=debug --log-dir="$PLAINBOX_SESSION_SHARE"
 flags: noreturn preserve-locale also-after-suspend
 
+
+plugin: shell
+category_id: com.canonical.plainbox::graphics
+id: graphics/test_auto_switch_card_alex
+requires:
+ graphics_card.driver in ['nvidia', 'amdgpu-pro', 'pcieport'] and graphics_card.runtime_pm == 'no'
+_summary: test...
+command: echo "run ......"
+
+
 plugin: shell
 category_id: com.canonical.plainbox::graphics
 id: graphics/nvlink-status-check

@@ -481,13 +481,14 @@ requires:
  package.name == 'checkbox-ng'
 estimated_duration: 2s
 depends:
+ power-management/cpu-low-power-idle
  power-management/turbostat_long_idle_result
 command:
  [ -f "$PLAINBOX_SESSION_SHARE"/idle-delay.orig ] && gsettings set org.gnome.desktop.session idle-delay $(cat "$PLAINBOX_SESSION_SHARE"/idle-delay.orig)
  check-turbostat-power-residency.sh -f "$PLAINBOX_SESSION_SHARE"/turbostat-long-idle.log --stat Pk%pc10:70
 _summary: Check expected CPU power stat residency in long-idle.
 _description:
- check expected CPU power stat residency in suspend to idle(s2i) by by turbostat which HWE suggested and also provide package_state_show for debug reference.
+ check expected CPU power stat residency in long idle by by turbostat which HWE suggested and also provide package_state_show for debug reference.
  This test job is an automatic test case and should be included into projects those need e-star compliance.
 
 plugin: shell
@@ -498,13 +499,15 @@ requires:
  package.name == 'checkbox-ng'
 estimated_duration: 2s
 depends:
+ power-management/cpu-low-power-idle
+ power-management/system-low-power-idle
  power-management/turbostat_long_idle_result
 command:
  [ -f "$PLAINBOX_SESSION_SHARE"/idle-delay.orig ] && gsettings set org.gnome.desktop.session idle-delay $(cat "$PLAINBOX_SESSION_SHARE"/idle-delay.orig)
  check-turbostat-power-residency.sh -f "$PLAINBOX_SESSION_SHARE"/turbostat-long-idle.log --stat SYS%LPI:70
 _summary: Check expected s0ix power stat residency in long-idle.
 _description:
- check expected s0ix power stat residency in suspend to idle(s2i) by by turbostat which HWE suggested and also provide package_state_show for debug reference.
+ check expected s0ix power stat residency in long idle by by turbostat which HWE suggested and also provide package_state_show for debug reference.
  This test job is an automatic test case and should be included into projects those need e-star compliance.
 
 plugin: shell
@@ -513,6 +516,7 @@ id: power-management/check-turbostat-long-idle-gfxrc6-residency
 requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
+ device.driver == 'i915'
 estimated_duration: 2s
 depends:
  power-management/turbostat_long_idle_result
@@ -521,7 +525,7 @@ command:
  check-turbostat-power-residency.sh -f "$PLAINBOX_SESSION_SHARE"/turbostat-long-idle.log --stat GFX%rc6:90
 _summary: Check expected GFXRC6 power stat residency in long-idle.
 _description:
- check expected GFXRC6 power stat residency in suspend to idle(s2i) by by turbostat which HWE suggested and also provide package_state_show for debug reference.
+ check expected GFXRC6 power stat residency in long idle by by turbostat which HWE suggested and also provide package_state_show for debug reference.
  This test job is an automatic test case and should be included into projects those need e-star compliance.
 
 plugin: shell
@@ -532,6 +536,9 @@ user: root
 requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
+ sleep.mem_sleep == '[s2idle] deep'
+depends:
+ power-management/cpu-low-power-idle
 command:
  check-turbostat-power-residency.sh --op-mode sleep-mode --stat Pk%pc10:70
 _summary: Check expected CPU power stat residency in suspend to idle(s2i).
@@ -547,6 +554,10 @@ user: root
 requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
+ sleep.mem_sleep == '[s2idle] deep'
+depends:
+ power-management/cpu-low-power-idle
+ power-management/system-low-power-idle
 command:
  check-turbostat-power-residency.sh --op-mode sleep-mode --stat SYS%LPI:70
 _summary: Check expected s0ix power stat residency in suspend to idle(s2i).
@@ -562,6 +573,8 @@ user: root
 requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
+ device.driver == 'i915'
+ sleep.mem_sleep == '[s2idle] deep'
 depends:
  miscellanea/install_kernel_tools
 command:

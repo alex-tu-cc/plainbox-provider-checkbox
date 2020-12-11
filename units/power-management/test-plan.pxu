@@ -92,5 +92,10 @@ unit: test plan
 _name: Check turbostate residency (automated)
 _description:
 include:
-    power-management/check-turbostat-long-idle-residency
-    power-management/check-turbostat-s2i-residency
+    device
+    power-management/check-turbostat-long-idle-cpu-residency
+    power-management/check-turbostat-long-idle-s0ix-residency
+    power-management/check-turbostat-long-idle-gfxrc6-residency
+    power-management/check-turbostat-s2i-cpu-residency
+    power-management/check-turbostat-s2i-s0ix-residency
+    power-management/check-turbostat-s2i-gfxrc6-residency

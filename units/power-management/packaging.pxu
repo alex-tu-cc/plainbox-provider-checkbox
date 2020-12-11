@@ -1,0 +1,4 @@
+# for check-turbostat-s2i-residency
+unit: packaging meta-data
+os-id: ubuntu
+Depends: inux-tools-`uname -r`, linux-tools-generic

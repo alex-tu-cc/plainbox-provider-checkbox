@@ -371,7 +371,6 @@ id: power-management/turbostat_long_idle_result
 estimated_duration: 90s
 user: root
 depends:
- miscellanea/install_kernel_tools
  miscellanea/enter_long_idle
 command:
  echo "Saving cpu package state tracking in $PLAINBOX_SESSION_SHARE/turbostat-long-idle.log and package_cstate_show"
@@ -413,8 +412,6 @@ user: root
 requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
-depends:
- miscellanea/install_kernel_tools
 command:
  check-turbostat-power-residency.sh --op-mode sleep-mode --stat Pk%pc10:70 --stat GFX%rc6:90 --stat SYS%LPI:70
 _summary: Check expected power stat residency in suspend to idle(s2i).

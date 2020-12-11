@@ -75,16 +75,16 @@ do
             shift
             if [ -f "$1" ]; then
                 EX_FILE="$1";
-	    else
-		echo"[ERROR] $1 is not there."
-		usage
+        else
+        echo"[ERROR] $1 is not there."
+        usage
             fi
             ;;
         --stat)
             shift
             [ -z "${TARGET_STATS##*${1%%:*}*}" ] || (echo "[ERROR] illegle parameter $1" && usage)
             avg_criteria["${1%%:*}"]="${1##*:}"
-	    custom_avg_criteria="true"
+            custom_avg_criteria="true"
             ;;
         *)
         usage

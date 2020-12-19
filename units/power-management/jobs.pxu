@@ -536,7 +536,7 @@ user: root
 requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
- sleep.mem_sleep == '[s2idle] deep'
+ sleep.mem_sleep == 's2idle'
 depends:
  power-management/cpu-low-power-idle
 command:
@@ -554,7 +554,7 @@ user: root
 requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
- sleep.mem_sleep == '[s2idle] deep'
+ sleep.mem_sleep == 's2idle'
 depends:
  power-management/cpu-low-power-idle
  power-management/system-low-power-idle
@@ -574,7 +574,7 @@ requires:
  lsb.release >= "20.04"
  package.name == 'checkbox-ng'
  device.driver == 'i915'
- sleep.mem_sleep == '[s2idle] deep'
+ sleep.mem_sleep == 's2idle'
 depends:
  miscellanea/install_kernel_tools
 command:

@@ -540,7 +540,7 @@ requires:
 depends:
  power-management/cpu-low-power-idle
 command:
- check-turbostat-power-residency.sh --op-mode sleep-mode --stat Pk%pc10:70
+ check-turbostat-power-residency.sh --folder "$PLAINBOX_SESSION_SHARE" --op-mode sleep-mode --stat Pk%pc10:70
 _summary: Check expected CPU power stat residency in suspend to idle(s2i).
 _description:
  check expected CPU power stat residency in suspend to idle(s2i) by turbostat which HWE suggested and also provide package_state_show for debug reference.
@@ -559,7 +559,7 @@ depends:
  power-management/cpu-low-power-idle
  power-management/system-low-power-idle
 command:
- check-turbostat-power-residency.sh --op-mode sleep-mode --stat SYS%LPI:70
+ check-turbostat-power-residency.sh --folder "$PLAINBOX_SESSION_SHARE" --op-mode sleep-mode --stat SYS%LPI:70
 _summary: Check expected s0ix power stat residency in suspend to idle(s2i).
 _description:
  check expected s0ix power stat residency in suspend to idle(s2i) by turbostat which HWE suggested and also provide package_state_show for debug reference.
@@ -578,7 +578,7 @@ requires:
 depends:
  miscellanea/install_kernel_tools
 command:
- check-turbostat-power-residency.sh --op-mode sleep-mode --stat GFX%rc6:90
+ check-turbostat-power-residency.sh --folder "$PLAINBOX_SESSION_SHARE" --op-mode sleep-mode --stat GFX%rc6:90
 _summary: Check expected GFXRC6 power stat residency in suspend to idle(s2i).
 _description:
  check expected GFXRC6 power stat residency in suspend to idle(s2i) by turbostat which HWE suggested and also provide package_state_show for debug reference.

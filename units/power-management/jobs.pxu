@@ -457,17 +457,11 @@ estimated_duration: 90s
 user: root
 depends:
  miscellanea/install_kernel_tools
- miscellanea/enter_long_idle
 command:
  echo "Saving cpu package state tracking in $PLAINBOX_SESSION_SHARE/turbostat-long-idle.log and package_cstate_show"
+ xset dpms force off
  check-turbostat-power-residency.sh --op-mode long-idle --folder "$PLAINBOX_SESSION_SHARE" --stat Pk%pc10:0 > /dev/null
- python3 <<EOF
- from evdev import UInput, ecodes as e
- ui = UInput()
- ui.write(e.EV_KEY, e.KEY_UP, 1)
- ui.syn()
- ui.close()
- EOF
+ xset dpms force off
 _summary: Get tubostate result from long idle.
 _description:
  get turbo state result from long idle so that we can know cpu pkg power status. The turbostat tool is suggested by HWE. Also provide package_state_show for debug reference.

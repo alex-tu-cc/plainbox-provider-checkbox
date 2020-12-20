@@ -506,16 +506,3 @@ command:
  dpkg -s linux-tools-"$(uname -r)" || apt-get install -y linux-tools-"$(uname -r)" || exit 1
 _summary: Install linux-tools based on the running kernel version.
 _description: Install linux-tools based on the running kernel version.
-
-plugin: shell
-category_id: com.canonical.plainbox::miscellanea
-requires:
- package.name == 'checkbox-ng'
-estimated_duration: 35
-id: miscellanea/enter_long_idle
-command:
- echo "Backup current idle-delay to $PLAINBOX_SESSION_SHARE/idle-delay.orig, then force system get into long idle."
- gsettings get org.gnome.desktop.session idle-delay | awk '{print $2}' | tee "$PLAINBOX_SESSION_SHARE"/idle-delay.orig
- gsettings set org.gnome.desktop.session idle-delay 10 && sleep 60
-_summary: Set idle-delay to 10 then sleep 60s to get system into long idle.
-_description: Set idle-delay to 10 then sleep 60s to get system into long idle.

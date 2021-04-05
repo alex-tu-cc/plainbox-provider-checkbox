@@ -455,8 +455,8 @@ category_id: com.canonical.plainbox::power-management
 id: power-management/turbostat_long_idle_result
 estimated_duration: 90s
 user: root
-depends:
- miscellanea/install_kernel_tools
+requires:
+ executable.name == 'turbostat'
 command:
  echo "Saving cpu package state tracking in $PLAINBOX_SESSION_SHARE/turbostat-long-idle.log and package_cstate_show"
  xset dpms force off
@@ -472,7 +472,6 @@ category_id: com.canonical.plainbox::power-management
 id: power-management/check-turbostat-long-idle-cpu-residency
 requires:
  lsb.release >= "20.04"
- package.name == 'checkbox-ng'
 estimated_duration: 2s
 depends:
  power-management/cpu-low-power-idle
@@ -490,7 +489,6 @@ category_id: com.canonical.plainbox::power-management
 id: power-management/check-turbostat-long-idle-s0ix-residency
 requires:
  lsb.release >= "20.04"
- package.name == 'checkbox-ng'
 estimated_duration: 2s
 depends:
  power-management/cpu-low-power-idle
@@ -509,7 +507,6 @@ category_id: com.canonical.plainbox::power-management
 id: power-management/check-turbostat-long-idle-gfxrc6-residency
 requires:
  lsb.release >= "20.04"
- package.name == 'checkbox-ng'
  device.driver == 'i915'
 estimated_duration: 2s
 depends:
@@ -529,7 +526,6 @@ estimated_duration: 90s
 user: root
 requires:
  lsb.release >= "20.04"
- package.name == 'checkbox-ng'
  sleep.mem_sleep == 's2idle'
 depends:
  power-management/cpu-low-power-idle
@@ -547,7 +543,6 @@ estimated_duration: 90s
 user: root
 requires:
  lsb.release >= "20.04"
- package.name == 'checkbox-ng'
  sleep.mem_sleep == 's2idle'
 depends:
  power-management/cpu-low-power-idle
@@ -566,11 +561,9 @@ estimated_duration: 90s
 user: root
 requires:
  lsb.release >= "20.04"
- package.name == 'checkbox-ng'
  device.driver == 'i915'
  sleep.mem_sleep == 's2idle'
-depends:
- miscellanea/install_kernel_tools
+ executable.name == 'turbostat'
 command:
  check-turbostat-power-residency.sh --folder "$PLAINBOX_SESSION_SHARE" --op-mode sleep-mode --stat GFX%rc6:90
 _summary: Check expected GFXRC6 power stat residency in suspend to idle(s2i).

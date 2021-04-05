@@ -493,16 +493,3 @@ _description:
  privileges
 _summary:
  Verify BMC user called 'maas' was successfully created
-
-plugin: shell
-category_id: com.canonical.plainbox::miscellanea
-requires:
- device.category == 'NETWORK'
- package.name == 'checkbox-ng'
-estimated_duration: 20
-id: miscellanea/install_kernel_tools
-user: root
-command:
- dpkg -s linux-tools-"$(uname -r)" || apt-get install -y linux-tools-"$(uname -r)" || exit 1
-_summary: Install linux-tools based on the running kernel version.
-_description: Install linux-tools based on the running kernel version.
